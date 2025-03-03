@@ -3,7 +3,7 @@ import 'dart:io';
 
 // import 'package:dart_tls/ch09/handshake/handshake_context.dart';
 // import 'package:dart_tls/ch09/handshaker/psk_aes_128_ccm.dart';
-import '../../handshaker/psk_aes_ccm.dart';
+import '../../handshaker/psk_aes_ccm8.dart';
 // import 'package:dart_tls/dart_tls.dart' as dart_tls;
 
 void main(List<String> arguments) {

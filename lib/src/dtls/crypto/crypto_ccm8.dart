@@ -5,17 +5,17 @@ import 'dart:math';
 import '../handshake/handshake.dart';
 import '../record_layer_header.dart';
 
-const int ccmTagLength = 16;
+const int ccmTagLength = 8; // Adjusted for AES-CCM-8
 const int ccmNonceLength = 12;
 const int recordLayerHeaderSize = 13;
 
-class CCM {
+class CCM8 {
   final Uint8List localKey;
   final Uint8List remoteKey;
   final Uint8List localWriteIV;
   final Uint8List remoteWriteIV;
 
-  CCM(this.localKey, this.localWriteIV, this.remoteKey, this.remoteWriteIV);
+  CCM8(this.localKey, this.localWriteIV, this.remoteKey, this.remoteWriteIV);
 
   Uint8List _randomBytes(int length) {
     final rand = Random.secure();

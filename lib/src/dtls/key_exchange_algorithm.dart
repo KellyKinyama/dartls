@@ -3,7 +3,8 @@ import 'dart:typed_data';
 
 import 'package:asn1lib/asn1lib.dart';
 import 'package:crypto/crypto.dart';
-import 'package:dartls/src/dtls/crypto/crypto_ccm8.dart';
+import 'package:dartls/src/dtls/crypto/crypto_ccm.dart';
+import 'crypto/crypto_ccm8.dart';
 import 'ecdsa_example.dart';
 import 'handshake/tls_random.dart';
 import 'package:hex/hex.dart';
@@ -437,6 +438,38 @@ CCM initCCM(
   // 	return nil, err
   // }
   return gcm;
+}
+
+CCM8 initCCM8(
+    Uint8List masterSecret, Uint8List clientRandom, Uint8List serverRandom) {
+  //https://github.com/pion/dtls/blob/bee42643f57a7f9c85ee3aa6a45a4fa9811ed122/internal/ciphersuite/tls_ecdhe_ecdsa_with_aes_128_gcm_sha256.go#L60
+  // const (
+  final prfKeyLen = 16;
+  final prfIvLen = 4;
+  // )
+  // logging.Descf(logging.ProtoCRYPTO, "Initializing GCM with Key Length: <u>%d</u>, IV Length: <u>%d</u>, these values are constants of <u>%s</u> cipher suite.",
+  // 	prfKeyLen, prfIvLen, "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256")
+
+  final keys = generateEncryptionKeys(
+      masterSecret, clientRandom, serverRandom, prfKeyLen, prfIvLen);
+  // if err != nil {
+  // 	return nil, err
+  // }
+
+  // logging.Descf(logging.ProtoCRYPTO, "Generated encryption keys from keying material (Key Length: <u>%d</u>, IV Length: <u>%d</u>) (<u>%d bytes</u>)\n\tMasterSecret: <u>0x%x</u> (<u>%d bytes</u>)\n\tClientWriteKey: <u>0x%x</u> (<u>%d bytes</u>)\n\tServerWriteKey: <u>0x%x</u> (<u>%d bytes</u>)\n\tClientWriteIV: <u>0x%x</u> (<u>%d bytes</u>)\n\tServerWriteIV: <u>0x%x</u> (<u>%d bytes</u>)",
+  // 	prfKeyLen, prfIvLen, prfKeyLen*2+prfIvLen*2,
+  // 	keys.MasterSecret, len(keys.MasterSecret),
+  // 	keys.ClientWriteKey, len(keys.ClientWriteKey),
+  // 	keys.ServerWriteKey, len(keys.ServerWriteKey),
+  // 	keys.ClientWriteIV, len(keys.ClientWriteIV),
+  // 	keys.ServerWriteIV, len(keys.ServerWriteIV))
+
+  final ccm = CCM8(keys.serverWriteKey, keys.serverWriteIV, keys.clientWriteKey,
+      keys.clientWriteIV);
+  // if err != nil {
+  // 	return nil, err
+  // }
+  return ccm;
 }
 
 Uint8List prfVerifyData(

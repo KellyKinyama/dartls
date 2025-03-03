@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:dartls/src/dtls/crypto/crypto_ccm.dart';
 import 'package:dartls/src/dtls/crypto/crypto_ccm8.dart';
 
 import '../crypto/crypto_gcm5.dart';
@@ -82,6 +83,8 @@ class HandshakeContext {
   late GCM gcm;
 
   late CCM ccm;
+
+  late CCM8 ccm8;
   void increaseServerEpoch() {
     serverEpoch++;
     serverSequenceNumber = 0;

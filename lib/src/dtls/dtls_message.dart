@@ -82,8 +82,12 @@ class DecodeDtlsMessageResult {
             cipherSuite == CipherSuiteId.Tls_Psk_With_Aes_128_Gcm_Sha256) {
           decryptedBytes = await context.gcm.decrypt(buf);
         }
+
         if (cipherSuite == CipherSuiteId.Tls_Psk_With_Aes_128_Ccm) {
           decryptedBytes = context.ccm.decrypt(buf);
+        }
+        if (cipherSuite == CipherSuiteId.Tls_Psk_With_Aes_128_Ccm_8) {
+          decryptedBytes = context.ccm8.decrypt(buf);
         }
         // 	if err != nil {
         // 		return nil, nil, nil, offset, err

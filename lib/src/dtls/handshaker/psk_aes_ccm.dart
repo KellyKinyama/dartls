@@ -161,7 +161,7 @@ class HandshakeManager {
           dataToDecode,
           0,
           dataToDecode.length,
-          CipherSuiteId.Tls_Psk_With_Aes_128_Ccm_8);
+          CipherSuiteId.Tls_Psk_With_Aes_128_Ccm);
 
       print(
           "Dtls message lenth: ${data.length}, decoded length: ${dtlsMsg.finalOffset}");
@@ -504,7 +504,7 @@ class HandshakeManager {
         context.serverRandom,
         context.session_id.length,
         context.session_id,
-        CipherSuiteId.Tls_Psk_With_Aes_128_Ccm_8.value,
+        CipherSuiteId.Tls_Psk_With_Aes_128_Ccm.value,
         context.compression_methods[0],
         context.extensions,
         extensionsData: Uint8List.fromList([
@@ -601,7 +601,7 @@ class HandshakeManager {
       if (context.isCipherSuiteInitialized) {
         print("Message to encrypt: ${messageToSend.sublist(13)}");
         final encryptedMessage =
-            context.ccm8.encrypt(header, Uint8List.fromList(messageToSend));
+            context.ccm.encrypt(header, Uint8List.fromList(messageToSend));
         // if err != nil {
         // 	panic(err)
         // }
@@ -754,12 +754,12 @@ class HandshakeManager {
     // if err != nil {
     // 	return err
     // }
-    final ccm8 = initCCM8(
+    final ccm = await initCCM(
         context.serverMasterSecret, clientRandomBytes, serverRandomBytes);
     // if err != nil {
     // 	return err
     // }
-    context.ccm8 = ccm8;
+    context.ccm = ccm;
     context.isCipherSuiteInitialized = true;
     // return nil
   }
