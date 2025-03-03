@@ -29,7 +29,7 @@ const String AttrUserName = 'UserName';
 class StunClient {
   // Create the XOR Mapped Address Attribute
   static Attribute createAttrXorMappedAddress(
-      List<int> transactionID, InternetAddress addr) {
+      List<int> transactionID, RawAddress addr) {
     final xorMask = List<int>.filled(16, 0);
 
     // First 4 bytes of the xorMask are the magic cookie
@@ -39,7 +39,7 @@ class StunClient {
     xorMask.setRange(4, 16, transactionID);
 
     // Prepare the addressBytes from the address IP (IPv4)
-    final addressBytes = addr.rawAddress.sublist(0, 4);
+    final addressBytes = addr.address.rawAddress.sublist(0, 4);
 
     // Modify the port based on xorMask
     final portModifier = ((xorMask[0] << 8) & 0x0000FF00) |
@@ -111,7 +111,7 @@ class StunClient {
 void main() {
   // Example usage
   final transactionID = List<int>.generate(12, (i) => i); // Example transaction ID
-  final addr = InternetAddress('192.168.0.1'); // Example IP address
+  final addr = RawAddress(InternetAddress('192.168.0.1'), 3478);
 
   final attr = StunClient.createAttrXorMappedAddress(transactionID, addr);
   print('Created Attribute: ${attr.attributeType}, Value: ${attr.value}');

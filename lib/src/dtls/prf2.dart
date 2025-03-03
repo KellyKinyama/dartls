@@ -36,6 +36,11 @@ Uint8List hmacSha256(Uint8List key, Uint8List data) {
   return Uint8List.fromList(hmac.convert(data).bytes);
 }
 
+Uint8List hmacSha1(Uint8List key, Uint8List data) {
+  var hmac = Hmac(sha1, key);
+  return Uint8List.fromList(hmac.convert(data).bytes);
+}
+
 // Uint8List tlsPRF_TLS10(Uint8List secret, String label, Uint8List seed, int outputLength) {
 //   int half = (secret.length / 2).ceil();
 //   Uint8List s1 = secret.sublist(0, half);
