@@ -156,7 +156,11 @@ class HandshakeManager {
           decodedLength, decodedLength + recordLayerHeaderSize + rh.contentLen);
 
       final dtlsMsg = await DecodeDtlsMessageResult.decode(
-          context, dataToDecode, 0, dataToDecode.length);
+          context,
+          dataToDecode,
+          0,
+          dataToDecode.length,
+          CipherSuiteId.Tls_Ecdhe_Ecdsa_With_Aes_128_Gcm_Sha256);
 
       print(
           "Dtls message lenth: ${data.length}, decoded length: ${dtlsMsg.finalOffset}");
