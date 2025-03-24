@@ -39,10 +39,11 @@ AtQOdUkFbpbYBfEjOzp2AtgUk1W+
   print("Fingerprint: $fingerprintHex");
   // Format the digest as a colon-separated string
   String fingerprintOut = fingerprintHex;
-  return fingerprintOut
+  fingerprintOut = fingerprintOut
       .replaceAllMapped(RegExp(r'.{2}'), (match) => '${match.group(0)}:')
       .substring(
           0, (fingerprintOut.length + fingerprintOut.length ~/ 2).toInt());
 
-  // return fingerprintOut;
+  fingerprintOut = fingerprintOut.substring(0, fingerprintOut.length - 1);
+  return fingerprintOut;
 }

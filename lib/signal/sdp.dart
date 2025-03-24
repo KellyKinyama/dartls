@@ -47,14 +47,9 @@ class SdpMessage {
   @override
   String toString() {
     var mediaItemsStr =
-        mediaItems.map((media) => media.toString()).join('\r\n');
-    return 'v=0\r\n'
-        'o=- $sessionID 2 IN IP4 127.0.0.1\r\n'
-        's=-\r\n'
-        't=0 0\r\n'
-        'a=extmap-allow-mixed\r\n'
-        'a=msid-semantic: WMS\r\n'
-        '$mediaItemsStr';
+        mediaItems.map((media) => "${media.toString()}'\r\n'").join('\r\n');
+    print("mediaItemsStr: $mediaItemsStr");
+    return 'v=0\r\no=- $sessionID 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS\r\n$mediaItemsStr\r\n';
   }
 }
 
@@ -104,13 +99,15 @@ class SdpMedia {
   String toString() {
     var candidatesStr =
         candidates.map((candidate) => candidate.toString()).join('\r\n');
-    return 'm=${type} 0 RTP/AVP ${payloads}\r\n'
-        'c=IN IP4 127.0.0.1\r\n'
-        'a=rtpmap:96 ${rtpCodec}/90000\r\n'
-        'a=ice-ufrag:$ufrag\r\n'
-        'a=ice-pwd:$pwd\r\n'
-        'a=fingerprint:$fingerprintType ${fingerprint()}\r\n'
-        'a=candidate:${candidatesStr}';
+    return [
+      'm=${type} 0 RTP/AVP ${payloads}\r\n',
+      'c=IN IP4 127.0.0.1\r\n',
+      'a=rtpmap:96 ${rtpCodec}/90000\r\n',
+      'a=ice-ufrag:$ufrag\r\n',
+      'a=ice-pwd:$pwd\r\n',
+      'a=fingerprint:$fingerprintType ${fingerprint()}\r\n',
+      'a=candidate:${candidatesStr}'
+    ].join();
   }
 }
 

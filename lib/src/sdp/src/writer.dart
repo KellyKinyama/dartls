@@ -113,5 +113,5 @@ String write(Map<String, dynamic> session, Map<String, dynamic>? opts) {
     });
   });
 
-  return sdp.join('\r\n') + '\r\n';
+  return '${sdp.join('\r\n')}\r\n';
 }

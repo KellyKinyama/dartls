@@ -15,6 +15,7 @@ dependencies:
   convert: ^3.1.2
   crypto: ^3.0.6
   cryptography: ^2.7.0
+  dotenv: ^4.2.0
   ecdsa: ^0.1.2
   elliptic: ^0.3.11
   hex: ^0.2.0
