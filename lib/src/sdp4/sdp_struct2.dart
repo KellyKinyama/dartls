@@ -564,23 +564,4 @@ void main() {
   print('Generated SDP Offer:\n$offer');
 }
 
-final sdpTest ='''v=0\r\n
-o=- 1234567890 2 IN IP4 127.0.0.1\r\n
-s=-\r\n
-t=0 0\r\n
-a=[extmap-allow-mixed]\r\n
-a=fingerprint:sha-256 12:34:56:78:90:AB:CD:EF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77\r\n
-a=msid-semantic: WMS default\r\n
-a=group:BUNDLE 0 1\r\n
-m=audio 9 UDP/TLS/RTP/SAVPF 111 0\r\n
-a=rtpmap:111 opus/48000/2\r\n
-a=rtpmap:0 PCMU/8000\r\n
-a=fmtp:111 minptime=10;useinbandfec=1\r\n
-a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\n
-a=fingerprint:sha-256 12:34:56:78:90:AB:CD:EF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77\r\n
-a=candidate:1 1 udp 2113937151 192.168.1.2 54555 typ host\r\n
-m=video 9 UDP/TLS/RTP/SAVPF 96\r\n
-a=rtpmap:96 VP8/90000\r\n
-a=fingerprint:sha-256 12:34:56:78:90:AB:CD:EF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77\r\n
-a=candidate:1 1 udp 2113937151 192.168.1.2 54555 typ host\r\n
-''';
+final sdpTest = '{ "sdp": " "v=0\r\no=- 1234567890 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=[extmap-allow-mixed]\r\na=fingerprint:sha-256 12:34:56:78:90:AB:CD:EF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77\r\na=msid-semantic: WMS default\r\na=group:BUNDLE 0 1\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111 0\r\na=rtpmap:111 opus/48000/2\r\na=rtpmap:0 PCMU/8000\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=fingerprint:sha-256 12:34:56:78:90:AB:CD:EF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77\r\na=candidate:1 1 udp 2113937151 192.168.1.2 54555 typ host\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=rtpmap:96 VP8/90000\r\na=fingerprint:sha-256 12:34:56:78:90:AB:CD:EF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77\r\na=candidate:1 1 udp 2113937151 192.168.1.2 54555 typ host\r\n"}';
