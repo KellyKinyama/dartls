@@ -321,3 +321,10 @@ String maskIPString(String ip) {
   }
   return buffer.toString();
 }
+
+
+
+void main(){
+  SdpMessage sdpMsg= generateSdpOffer(ServerAgent(conferenceName: '')) ;
+
+}

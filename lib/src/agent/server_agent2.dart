@@ -34,7 +34,7 @@ class ServerAgent {
       conferenceName: conferenceName,
       ufrag: generateIceUfrag(),
       pwd: generateIcePwd(),
-      fingerprintHash: ServerCertificate.fingerprint,
+      fingerprintHash: "EA:70:3E:9F:C4:CC:85:E9:68:4D:C4:82:0F:15:63:79:0B:8C:BE:FB:B2:47:06:BA:D0:E7:3A:63:8C:EB:C6:1E",
       iceCandidates: iceCandidates,
       signalingMediaComponents: {},
       sockets: {},
@@ -112,3 +112,4 @@ enum Proto { APP }
 void loggingDescf(Proto proto, String message) {
   print('[${proto.name}] $message');
 }
+
