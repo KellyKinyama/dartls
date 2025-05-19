@@ -1,4 +1,6 @@
 import 'dart:io';
+
+import 'package:dartls/src/stun/src/stun_message.dart';
 // import 'dart:typed_data';
 
 // import 'package:dart_tls/ch09/handshake/handshake_context.dart';
@@ -6,7 +8,7 @@ import 'dart:io';
 // import 'package:dart_tls/dart_tls.dart' as dart_tls;
 
 void main(List<String> arguments) {
-  String ip = "127.0.0.1";
+  String ip = "10.100.53.194";
   // String ip = "10.100.53.174";
   int port = 4444;
   RawDatagramSocket.bind(InternetAddress(ip), port)
@@ -19,11 +21,15 @@ void main(List<String> arguments) {
 
       if (d != null) {
         print("recieved data ${d.data}");
+
+        StunMessage stunMessage =
+            StunMessage.form(d.data, StunProtocol.RFC5780);
+
         // HandshakeContext context = HandshakeContext();
         // final dtlsMsg =
         //     DecodeDtlsMessageResult.decode(context, d.data, 0, d.data.length);
 
-        //print("DTLS msg: $dtlsMsg");
+        print("DTLS msg: $stunMessage");
       }
     });
   });

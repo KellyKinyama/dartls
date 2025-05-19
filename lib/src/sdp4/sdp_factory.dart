@@ -1,311 +1,405 @@
 import 'package:sdp_transform/sdp_transform.dart';
 
-enum MediaType { video, audio }
+String? asString(dynamic value) => value?.toString();
+int? asInt(dynamic value) =>
+    value is int ? value : int.tryParse(value?.toString() ?? '');
 
-enum CandidateType { host }
+class SdpObject {
+  final int version;
+  final Origin origin;
+  final String name;
+  final Timing timing;
+  final List<Group> groups;
+  final List<Map<String, String>> extmapAllowMixed;
+  final MsidSemantic msidSemantic;
+  final List<Media> media;
 
-enum TransportType { udp, tcp }
-
-enum FingerprintType { sha256 }
-
-class SdpMediaCandidate {
-  final String ip;
-  final int port;
-  final CandidateType type;
-  final TransportType transport;
-
-  SdpMediaCandidate({
-    required this.ip,
-    required this.port,
-    required this.type,
-    required this.transport,
+  SdpObject({
+    required this.version,
+    required this.origin,
+    required this.name,
+    required this.timing,
+    required this.groups,
+    required this.extmapAllowMixed,
+    required this.msidSemantic,
+    required this.media,
   });
 
-  @override
-  String toString() {
-    return 'Type: <u>${type.name}</u>, Transport: <u>${transport.name}</u>, Ip: <u>$ip</u>, Port: <u>$port</u>';
-  }
+  factory SdpObject.fromJson(Map<String, dynamic> json) => SdpObject(
+        version: json['version'],
+        origin: Origin.fromJson(json['origin']),
+        name: json['name'],
+        timing: Timing.fromJson(json['timing']),
+        groups: (json['groups'] as List).map((e) => Group.fromJson(e)).toList(),
+        extmapAllowMixed: List<Map<String, String>>.from(
+            json['extmapAllowMixed'].map((e) => Map<String, String>.from(e))),
+        msidSemantic: MsidSemantic.fromJson(json['msidSemantic']),
+        media: (json['media'] as List).map((e) => Media.fromJson(e)).toList(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'version': version,
+        'origin': origin.toJson(),
+        'name': name,
+        'timing': timing.toJson(),
+        'groups': groups.map((e) => e.toJson()).toList(),
+        'extmapAllowMixed': extmapAllowMixed,
+        'msidSemantic': msidSemantic.toJson(),
+        'media': media.map((e) => e.toJson()).toList(),
+      };
 }
 
-class SdpMedia {
-  final int mediaId;
-  final MediaType type;
-  final String ufrag;
-  final String pwd;
-  final FingerprintType fingerprintType;
-  final String fingerprintHash;
-  final List<SdpMediaCandidate> candidates;
-  final String payloads;
-  final String rtpCodec;
+class Origin {
+  final String username;
+  final int sessionId;
+  final int sessionVersion;
+  final String netType;
+  final int ipVer;
+  final String address;
 
-  SdpMedia({
-    required this.mediaId,
-    required this.type,
-    required this.ufrag,
-    required this.pwd,
-    required this.fingerprintType,
-    required this.fingerprintHash,
-    required this.candidates,
-    required this.payloads,
-    required this.rtpCodec,
-  });
-
-  @override
-  String toString() {
-    final candidatesStr = candidates.map((c) => '[SdpCandidate] $c').join("\n");
-    return 'MediaId: <u>$mediaId</u>, Type: $type, Ufrag: <u>$ufrag</u>, Pwd: <u>$pwd</u>\n'
-        'FingerprintType: <u>${fingerprintType.name}</u>, FingerprintHash: <u>$fingerprintHash</u>\n'
-        'Candidates:\n+$candidatesStr';
-  }
-}
-
-class SdpMessage {
-  final String conferenceName;
-  final String sessionId;
-  final List<SdpMedia> mediaItems;
-
-  SdpMessage({
-    this.conferenceName = '',
+  Origin({
+    required this.username,
     required this.sessionId,
-    required this.mediaItems,
+    required this.sessionVersion,
+    required this.netType,
+    required this.ipVer,
+    required this.address,
   });
 
-  factory SdpMessage.fromMap(Map<String, dynamic> offer) {
-    final sessionId = offer['origin']['sessionId'] as String;
-    final mediaList = offer['media'] as List;
-    final mediaItems = <SdpMedia>[];
+  factory Origin.fromJson(Map<String, dynamic> json) => Origin(
+        username: json['username'],
+        sessionId: json['sessionId'],
+        sessionVersion: json['sessionVersion'],
+        netType: json['netType'],
+        ipVer: json['ipVer'],
+        address: json['address'],
+      );
 
-    for (final mediaItem in mediaList) {
-      final candidatesRaw = mediaItem['candidates'] ?? [];
-      final fingerprintRaw = mediaItem['fingerprint'] ?? offer['fingerprint'];
-
-      final candidates = (candidatesRaw as List).map((c) {
-        return SdpMediaCandidate(
-          ip: c['ip'],
-          port: c['port'],
-          type: CandidateType.values.firstWhere((e) => e.name == c['type']),
-          transport:
-              TransportType.values.firstWhere((e) => e.name == c['transport']),
-        );
-      }).toList();
-
-      mediaItems.add(SdpMedia(
-        mediaId: 0, // Not provided in original map
-        type: MediaType.values.firstWhere((e) => e.name == mediaItem['type']),
-        ufrag: mediaItem['iceUfrag'],
-        pwd: mediaItem['icePwd'],
-        fingerprintType: FingerprintType.values.firstWhere((e) =>
-            e.name.replaceAll('-', '') ==
-            fingerprintRaw['type'].replaceAll('-', '')),
-        fingerprintHash: fingerprintRaw['hash'],
-        candidates: candidates,
-        payloads: mediaItem['payloads'] ?? '',
-        rtpCodec: mediaItem['rtpCodec'] ?? '',
-      ));
-    }
-
-    return SdpMessage(sessionId: sessionId, mediaItems: mediaItems);
-  }
-
-  @override
-  String toString() {
-    final mediaStrings = mediaItems.map((m) => '[SdpMedia] $m').join("\n");
-    return 'SessionID: <u>$sessionId</u>\nMediaItems:\n+$mediaStrings';
-  }
-}
-
-// Dummy placeholders for external references:
-class AgentCandidate {
-  final String ip;
-  final int port;
-  AgentCandidate({required this.ip, required this.port});
-}
-
-class ServerAgent {
-  final String ufrag;
-  final String pwd;
-  final String fingerprintHash;
-  final List<AgentCandidate> iceCandidates;
-  ServerAgent(
-      {required this.ufrag,
-      required this.pwd,
-      required this.fingerprintHash,
-      required this.iceCandidates});
-}
-
-SdpMessage generateSdpOffer(ServerAgent agent, {bool requestAudio = true}) {
-  final candidates = agent.iceCandidates
-      .map((c) => SdpMediaCandidate(
-            ip: c.ip,
-            port: c.port,
-            type: CandidateType.host,
-            transport: TransportType.udp,
-          ))
-      .toList();
-
-  final mediaItems = <SdpMedia>[
-    SdpMedia(
-      mediaId: 0,
-      type: MediaType.video,
-      ufrag: agent.ufrag,
-      pwd: agent.pwd,
-      fingerprintType: FingerprintType.sha256,
-      fingerprintHash: agent.fingerprintHash,
-      candidates: candidates,
-      payloads: '96', // rtp.PayloadTypeVP8.CodecCodeNumber()
-      rtpCodec: 'VP8/90000', // rtp.PayloadTypeVP8.CodecName()
-    )
-  ];
-
-  if (requestAudio) {
-    mediaItems.add(SdpMedia(
-      mediaId: 1,
-      type: MediaType.audio,
-      ufrag: agent.ufrag,
-      pwd: agent.pwd,
-      fingerprintType: FingerprintType.sha256,
-      fingerprintHash: agent.fingerprintHash,
-      candidates: candidates,
-      payloads: '109', // rtp.PayloadTypeOpus.CodecCodeNumber()
-      rtpCodec: 'OPUS/48000/2', // rtp.PayloadTypeOpus.CodecName()
-    ));
-  }
-
-  return SdpMessage(sessionId: '1234', mediaItems: mediaItems);
-}
-
-SdpMessage parseSdpOfferAnswer(Map<String, dynamic> offer) {
-  final sessionId =
-      (offer['origin'] as Map<String, dynamic>)['sessionId'] as String;
-
-  final mediaItems = (offer['media'] as List<dynamic>).map((mediaItemObj) {
-    final mediaItem = mediaItemObj as Map<String, dynamic>;
-
-    final type = mediaTypeFromString(mediaItem['type'] as String);
-    final ufrag = mediaItem['iceUfrag'] as String;
-    final pwd = mediaItem['icePwd'] as String;
-
-    // Try to get fingerprint from media first, fallback to offer-level fingerprint
-    Map<String, dynamic> fingerprint = {};
-    if (mediaItem.containsKey('fingerprint')) {
-      fingerprint = mediaItem['fingerprint'] as Map<String, dynamic>;
-    } else if (offer.containsKey('fingerprint')) {
-      fingerprint = offer['fingerprint'] as Map<String, dynamic>;
-    }
-
-    final fingerprintType =
-        fingerprintTypeFromString(fingerprint['type'] as String);
-    final fingerprintHash = fingerprint['hash'] as String;
-
-    final candidatesList = <SdpMediaCandidate>[];
-    if (mediaItem.containsKey('candidates')) {
-      for (final candidateObj in mediaItem['candidates'] as List<dynamic>) {
-        final candidate = candidateObj as Map<String, dynamic>;
-        final candidateType =
-            candidateTypeFromString(candidate['type'] as String);
-        final transport =
-            transportTypeFromString(candidate['transport'] as String);
-        final ip = candidate['ip'] as String;
-        final port = (candidate['port'] as num).toInt();
-
-        candidatesList.add(SdpMediaCandidate(
-          ip: ip,
-          port: port,
-          type: candidateType,
-          transport: transport,
-        ));
-      }
-    }
-
-    return SdpMedia(
-      mediaId: 0, // Optional: You can parse 'mid' if needed
-      type: type,
-      ufrag: ufrag,
-      pwd: pwd,
-      fingerprintType: fingerprintType,
-      fingerprintHash: fingerprintHash,
-      candidates: candidatesList,
-      payloads: '', // Optional: you can extract these too if present
-      rtpCodec: '',
-    );
-  }).toList();
-
-  final message = SdpMessage(
-    sessionId: sessionId,
-    mediaItems: mediaItems,
-  );
-
-  print('It seems the client has received our SDP Offer, processed it, '
-      'accepted it, initialized its media devices, started its UDP listener, '
-      'and sent us this SDP Answer.\n'
-      'In this project, we don’t use the client’s candidates because we only implement '
-      'receiver functionality — no media is sent back :)');
-
-  print('Processing Incoming SDP:\n$message\n');
-  return message;
-}
-
-MediaType mediaTypeFromString(String type) {
-  return MediaType.values.firstWhere((e) => e.name == type.toLowerCase());
-}
-
-CandidateType candidateTypeFromString(String type) {
-  return CandidateType.values.firstWhere((e) => e.name == type.toLowerCase());
-}
-
-TransportType transportTypeFromString(String type) {
-  return TransportType.values.firstWhere((e) => e.name == type.toLowerCase());
-}
-
-FingerprintType fingerprintTypeFromString(String type) {
-  // Normalize the dash if needed (e.g., "sha-256" -> "sha256")
-  final normalized = type.replaceAll('-', '').toLowerCase();
-  return FingerprintType.values.firstWhere((e) => e.name == normalized);
-}
-
-extension SdpMediaCandidateSerialization on SdpMediaCandidate {
-  Map<String, dynamic> toMap() {
-    return {
-      'ip': ip,
-      'port': port,
-      'type': type.name,
-      'transport': transport.name,
-    };
-  }
-}
-
-extension SdpMediaSerialization on SdpMedia {
-  Map<String, dynamic> toMap() {
-    return {
-      'type': type.name,
-      'iceUfrag': ufrag,
-      'icePwd': pwd,
-      'fingerprint': {
-        'type': fingerprintType.name,
-        'hash': fingerprintHash,
-      },
-      'candidates': candidates.map((c) => c.toMap()).toList(),
-      'payloads': payloads,
-      'rtpCodec': rtpCodec,
-      'mid': mediaId.toString(),
-    };
-  }
-}
-
-extension SdpMessageSerialization on SdpMessage {
-  Map<String, dynamic> toMap() {
-    return {
-      'origin': {
+  Map<String, dynamic> toJson() => {
+        'username': username,
         'sessionId': sessionId,
-      },
-      'media': mediaItems.map((m) => m.toMap()).toList(),
-      if (mediaItems.isNotEmpty)
-        'fingerprint': {
-          'type': mediaItems.first.fingerprintType.name,
-          'hash': mediaItems.first.fingerprintHash,
-        },
-    };
-  }
+        'sessionVersion': sessionVersion,
+        'netType': netType,
+        'ipVer': ipVer,
+        'address': address,
+      };
+}
+
+class Timing {
+  final int start;
+  final int stop;
+
+  Timing({required this.start, required this.stop});
+
+  factory Timing.fromJson(Map<String, dynamic> json) =>
+      Timing(start: json['start'], stop: json['stop']);
+
+  Map<String, dynamic> toJson() => {'start': start, 'stop': stop};
+}
+
+class Group {
+  final String type;
+  final String mids;
+
+  Group({required this.type, required this.mids});
+
+  factory Group.fromJson(Map<String, dynamic> json) =>
+      Group(type: json['type'], mids: json['mids']);
+
+  Map<String, dynamic> toJson() => {'type': type, 'mids': mids};
+}
+
+class MsidSemantic {
+  final String semantic;
+  final String token;
+
+  MsidSemantic({required this.semantic, required this.token});
+
+  factory MsidSemantic.fromJson(Map<String, dynamic> json) =>
+      MsidSemantic(semantic: json['semantic'], token: json['token']);
+
+  Map<String, dynamic> toJson() => {'semantic': semantic, 'token': token};
+}
+
+class Media {
+  final String? type;
+  final int? port;
+  final String? protocol;
+  final String? payloads;
+  final Connection? connection;
+  final Rtcp? rtcp;
+  final String? iceUfrag;
+  final String? icePwd;
+  final String? iceOptions;
+  final Fingerprint? fingerprint;
+  final String? setup;
+  final String? mid;
+  final List<Rtp> rtp;
+  final List<Fmtp> fmtp;
+  final List<Ext> ext;
+  final String? direction;
+  final String? msid;
+  final String? rtcpMux;
+  final String? rtcpRsize;
+  final List<RtcpFb> rtcpFb;
+  final List<Ssrc> ssrcs;
+  final List<SsrcGroup> ssrcGroups;
+
+  Media({
+    this.type,
+    this.port,
+    this.protocol,
+    this.payloads,
+    this.connection,
+    this.rtcp,
+    this.iceUfrag,
+    this.icePwd,
+    this.iceOptions,
+    this.fingerprint,
+    this.setup,
+    this.mid,
+    this.rtp = const [],
+    this.fmtp = const [],
+    this.ext = const [],
+    this.direction,
+    this.msid,
+    this.rtcpMux,
+    this.rtcpRsize,
+    this.rtcpFb = const [],
+    this.ssrcs = const [],
+    this.ssrcGroups = const [],
+  });
+
+  factory Media.fromJson(Map<String, dynamic> json) => Media(
+        type: asString(json['type']),
+        port: asInt(json['port']),
+        protocol: asString(json['protocol']),
+        payloads: asString(json['payloads']),
+        connection: json['connection'] != null
+            ? Connection.fromJson(json['connection'])
+            : null,
+        rtcp: json['rtcp'] != null ? Rtcp.fromJson(json['rtcp']) : null,
+        iceUfrag: asString(json['iceUfrag']),
+        icePwd: asString(json['icePwd']),
+        iceOptions: asString(json['iceOptions']),
+        fingerprint: json['fingerprint'] != null
+            ? Fingerprint.fromJson(json['fingerprint'])
+            : null,
+        setup: asString(json['setup']),
+        mid: asString(json['mid']),
+        rtp: (json['rtp'] as List?)?.map((e) => Rtp.fromJson(e)).toList() ?? [],
+        fmtp: (json['fmtp'] as List?)?.map((e) => Fmtp.fromJson(e)).toList() ??
+            [],
+        ext: (json['ext'] as List?)?.map((e) => Ext.fromJson(e)).toList() ?? [],
+        direction: asString(json['direction']),
+        msid: asString(json['msid']),
+        rtcpMux: asString(json['rtcpMux']),
+        rtcpRsize: asString(json['rtcpRsize']),
+        rtcpFb: (json['rtcpFb'] as List?)
+                ?.map((e) => RtcpFb.fromJson(e))
+                .toList() ??
+            [],
+        ssrcs:
+            (json['ssrcs'] as List?)?.map((e) => Ssrc.fromJson(e)).toList() ??
+                [],
+        ssrcGroups: (json['ssrcGroups'] as List?)
+                ?.map((e) => SsrcGroup.fromJson(e))
+                .toList() ??
+            [],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'type': type,
+        'port': port,
+        'protocol': protocol,
+        'payloads': payloads,
+        'connection': connection?.toJson(),
+        'rtcp': rtcp?.toJson(),
+        'iceUfrag': iceUfrag,
+        'icePwd': icePwd,
+        'iceOptions': iceOptions,
+        'fingerprint': fingerprint?.toJson(),
+        'setup': setup,
+        'mid': mid,
+        'rtp': rtp.map((e) => e.toJson()).toList(),
+        'fmtp': fmtp.map((e) => e.toJson()).toList(),
+        'ext': ext.map((e) => e.toJson()).toList(),
+        'direction': direction,
+        'msid': msid,
+        'rtcpMux': rtcpMux,
+        'rtcpRsize': rtcpRsize,
+        'rtcpFb': rtcpFb.map((e) => e.toJson()).toList(),
+        'ssrcs': ssrcs.map((e) => e.toJson()).toList(),
+        'ssrcGroups': ssrcGroups.map((e) => e.toJson()).toList(),
+      };
+}
+
+class Connection {
+  final String? ip;
+  final int? version;
+
+  Connection({this.ip, this.version});
+
+  factory Connection.fromJson(Map<String, dynamic> json) => Connection(
+        ip: asString(json['ip']),
+        version: asInt(json['version']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'ip': ip,
+        'version': version,
+      };
+}
+
+class Rtcp {
+  final int? port;
+  final String? ip;
+  final int? version;
+
+  Rtcp({this.port, this.ip, this.version});
+
+  factory Rtcp.fromJson(Map<String, dynamic> json) => Rtcp(
+        port: asInt(json['port']),
+        ip: asString(json['ip']),
+        version: asInt(json['version']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'port': port,
+        'ip': ip,
+        'version': version,
+      };
+}
+
+class Fingerprint {
+  final String? type;
+  final String? hash;
+
+  Fingerprint({this.type, this.hash});
+
+  factory Fingerprint.fromJson(Map<String, dynamic> json) => Fingerprint(
+        type: asString(json['type']),
+        hash: asString(json['hash']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'type': type,
+        'hash': hash,
+      };
+}
+
+class Rtp {
+  final int? payload;
+  final String? codec;
+  final int? rate;
+  final int? encoding;
+
+  Rtp({this.payload, this.codec, this.rate, this.encoding});
+
+  factory Rtp.fromJson(Map<String, dynamic> json) => Rtp(
+        payload: asInt(json['payload']),
+        codec: asString(json['codec']),
+        rate: asInt(json['rate']),
+        encoding: asInt(json['encoding']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'payload': payload,
+        'codec': codec,
+        'rate': rate,
+        'encoding': encoding,
+      };
+}
+
+class Fmtp {
+  final int? payload;
+  final String? config;
+
+  Fmtp({this.payload, this.config});
+
+  factory Fmtp.fromJson(Map<String, dynamic> json) => Fmtp(
+        payload: asInt(json['payload']),
+        config: asString(json['config']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'payload': payload,
+        'config': config,
+      };
+}
+
+class Ext {
+  final int? value;
+  final String? uri;
+
+  Ext({this.value, this.uri});
+
+  factory Ext.fromJson(Map<String, dynamic> json) => Ext(
+        value: asInt(json['value']),
+        uri: asString(json['uri']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'value': value,
+        'uri': uri,
+      };
+}
+
+class RtcpFb {
+  final int? payload;
+  final String? type;
+  final String? subtype;
+
+  RtcpFb({this.payload, this.type, this.subtype});
+
+  factory RtcpFb.fromJson(Map<String, dynamic> json) => RtcpFb(
+        payload: asInt(json['payload']),
+        type: asString(json['type']),
+        subtype: asString(json['subtype']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'payload': payload,
+        'type': type,
+        'subtype': subtype,
+      };
+}
+
+class Ssrc {
+  final int? id;
+  final String? attribute;
+  final String? value;
+
+  Ssrc({this.id, this.attribute, this.value});
+
+  factory Ssrc.fromJson(Map<String, dynamic> json) => Ssrc(
+        id: asInt(json['id']),
+        attribute: asString(json['attribute']),
+        value: asString(json['value']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'attribute': attribute,
+        'value': value,
+      };
+}
+
+class SsrcGroup {
+  final String? semantics;
+  final String? ssrcs;
+
+  SsrcGroup({this.semantics, this.ssrcs});
+
+  factory SsrcGroup.fromJson(Map<String, dynamic> json) => SsrcGroup(
+        semantics: asString(json['semantics']),
+        ssrcs: asString(json['ssrcs']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'semantics': semantics,
+        'ssrcs': ssrcs,
+      };
 }
 
 void main() {
@@ -324,8 +418,9 @@ void main() {
     {"offer": chromeOfferSdp, "answer": chromeAnswerSdp}
   ];
 
-  final sdpOffer = parse(chromeOfferSdp['sdp'] as String);
+  final sdpOffer = parse(chromeAnswerSdp['sdp'] as String);
   print("Parsed: $sdpOffer");
 
-  // parseSdpOfferAnswer(sdpOffer);
+  final sdp = SdpObject.fromJson(sdpOffer);
+  // print("Reconstructed: ${write(sdp.toJson(), null)}");
 }

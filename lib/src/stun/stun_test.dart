@@ -24,10 +24,10 @@ Future<void> main() async {
   // test("udp", () async {
   StunClient stunClient = StunClient.create(
     transport: Transport.udp,
-    serverHost: "stun.hot-chilli.net",
-    serverPort: 3478,
-    localIp: "0.0.0.0",
-    localPort: 54321,
+    serverHost: "stun.l.google.com",
+    serverPort: 19302,
+    localIp: "10.100.53.194",
+    localPort: 4444,
     stunProtocol: StunProtocol.RFC5780,
   );
   StunMessage stunMessage = stunClient.createBindingStunMessage();
