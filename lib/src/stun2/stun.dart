@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'dart:convert'; // For utf8.decode
+import 'dart:convert';
 
 // Helper function to convert a List<int> to a hex string
 String bytesToHexString(List<int> bytes, {String separator = ""}) {
@@ -119,12 +119,15 @@ class StunAttribute {
 
       default:
         // For your specific packet:
-        if (type == 0x0024)
+        if (type == 0x0024) {
           return "MESSAGE-INTEGRITY (from your packet, usually 0x0008 or 0x8020)";
-        if (type == 0x0008)
+        }
+        if (type == 0x0008) {
           return "FINGERPRINT (from your packet, usually 0x8028)";
-        if (type == 0xC057)
+        }
+        if (type == 0xC057) {
           return "ICE-CONTROLLING (from your packet, standard is 0x802C)";
+        }
         return "Unknown Attribute (0x${type.toRadixString(16).padLeft(4, '0')})";
     }
   }
@@ -179,7 +182,7 @@ class StunAttribute {
     return '''
     Attribute:
       Type: 0x${type.toRadixString(16).padLeft(4, '0')} ($typeDescription)
-      Declared Value Length: $declaredValueLength bytes${standardLengthNote}
+      Declared Value Length: $declaredValueLength bytes$standardLengthNote
       Value: $valueAsString
       Raw TLV Bytes: ${bytesToHexString(rawAttributeBytes)}''';
   }
@@ -336,7 +339,7 @@ StunMessage? parseStunPacket(List<int> packetBytes) {
 }
 
 void main() {
-  final List<int> udpData = [
+  final Uint8List udpData = Uint8List.fromList([
     0,
     1,
     0,
@@ -425,11 +428,15 @@ void main() {
     15,
     85,
     30
-  ];
-
+  ]);
+  // StunProtocol stunProtocol = StunProtocol.RFC5780;
   final StunMessage? parsedMessage = parseStunPacket(udpData);
 
+  // final Message parsedMessage = Message.decode(udpData);
+
+  // final StunMessage? parsedMessage = parseStunPacket(udpData);
+
   if (parsedMessage != null) {
-    print(parsedMessage.toString());
+    print(parsedMessage);
   }
 }
