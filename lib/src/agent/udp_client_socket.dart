@@ -14,7 +14,7 @@ Message createBindingResponse(
     Message request, RawDatagramSocket addr, String userName) {
   final responseMessage = Message.newMessage(
       MessageType(
-          messageClass: MessageClass.Request,
+          messageClass: MessageClass.SuccessResponse,
           messageMethod: MessageMethod.StunBinding),
       request.transactionID);
 

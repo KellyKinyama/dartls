@@ -351,7 +351,21 @@ abstract class StunMessage {
     int typeMethod = type & METHOD_MASK;
     switch (typeClass) {
       case CLASS_REQUEST:
-        throw Exception('Invalid class type: CLASS_REQUEST');
+        switch (typeMethod) {
+          case METHOD_BINDING:
+            int length = reader.readUint(binaryDigits: 16);
+            //todo assert length
+            int cookie = reader.readUint(binaryDigits: 32);
+            bool hasMagicCookie = cookie == MAGIC_COOKIE;
+            int transactionId = reader.readUint(binaryDigits: 96);
+            List<StunAttributes> attributes =
+                resolveAttributes(reader, stunProtocol);
+            //todo assert FINGERPRINT
+            return StunMessage.create(head, type, length, cookie, transactionId,
+                attributes, stunProtocol);
+          default:
+            throw Exception('Invalid class type: CLASS_REQUEST');
+        }
       case CLASS_RESPONSE_SUCCESS:
         switch (typeMethod) {
           case METHOD_BINDING:

@@ -333,14 +333,15 @@ Future<void> main() async {
   // if (parsedMessage != null) {
   print(parsedMessage);
   final encoded = parsedMessage.encode("KTSf");
-  print("Encoded message: $encoded");
+  // print("Encoded message: $encoded");
   Message.decodeMessage(encoded, 0, encoded.length);
   RawDatagramSocket socket =
       await RawDatagramSocket.bind(InternetAddress("127.0.0.1"), 4444);
   final reponseMsg = createBindingResponse(parsedMessage, socket,
       utf8.decode(parsedMessage.attributes[AttributeType.UserName]!.value));
 
-  print("Presponse: $reponseMsg");
+// print("Presponse: ${reponseMsg.encode("pwd")}");
+  print("Presponse: ${reponseMsg.encode("pwd")}");
 
   // }
 }
